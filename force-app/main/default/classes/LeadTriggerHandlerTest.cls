@@ -112,6 +112,10 @@ private class LeadTriggerHandlerTest {
                 industry = 'Healthcare';
             }
 
+            if (Math.mod(i, 20) == 0) {
+                title = null;
+            }
+
             leads.add(new Lead(
                 FirstName = 'FirstName' + i,
                 LastName = 'LastName' + i,
@@ -135,17 +139,22 @@ private class LeadTriggerHandlerTest {
         Test.stopTest();
 
         for (Lead ld : leads) {
-            if (ld.Title.contains('vp') || ld.Title.contains('v.p.') || ld.Title.contains('vice president')) {
-                Assert.areEqual('Vice President', ld.Title, 'Title was not normalized correctly for: ' + ld.Title);
-            } else if (ld.Title.contains('mgr') || ld.Title.contains('manage') || ld.Title.contains('head of department')) {
-                Assert.areEqual('Manager', ld.Title, 'Title was not normalized correctly for: ' + ld.Title);
-            } else if (ld.Title.contains('exec') || ld.Title.contains('chief') || ld.Title.contains('head')) {
-                Assert.areEqual('Executive', ld.Title, 'Title was not normalized correctly for: ' + ld.Title);
-            } else if (ld.Title.contains('assist') || ld.Title.contains('deputy') || ld.Title.contains('jr')) {
-                Assert.areEqual('Assistant', ld.Title, 'Title was not normalized correctly for: ' + ld.Title);
+            if (ld.Title != null) {
+                if (ld.Title.contains('vp') || ld.Title.contains('v.p.') || ld.Title.contains('vice president')) {
+                    Assert.areEqual('Vice President', ld.Title, 'Title was not normalized correctly for: ' + ld.Title);
+                } else if (ld.Title.contains('mgr') || ld.Title.contains('manage') || ld.Title.contains('head of department')) {
+                    Assert.areEqual('Manager', ld.Title, 'Title was not normalized correctly for: ' + ld.Title);
+                } else if (ld.Title.contains('exec') || ld.Title.contains('chief') || ld.Title.contains('head')) {
+                    Assert.areEqual('Executive', ld.Title, 'Title was not normalized correctly for: ' + ld.Title);
+                } else if (ld.Title.contains('assist') || ld.Title.contains('deputy') || ld.Title.contains('jr')) {
+                    Assert.areEqual('Assistant', ld.Title, 'Title was not normalized correctly for: ' + ld.Title);
+                } else {
+                    // Assert.areEqual(null, ld.Title, 'Unexpected title value: ' + ld.Title);
+                }
             } else {
-                // Assert.areEqual(null, ld.Title, 'Unexpected title value: ' + ld.Title);
+                Assert.areEqual(null, ld.Title, 'Title should be null.');
             }
+            
         }
     }
 }
