@@ -104,13 +104,31 @@ public with sharing class LeadTriggerHandler {
 	 * - One of the errors is map related. Make sure you are using the correct contact map key
 	 */
 	public static void handleLeadAutoConvert(List<Lead> leads) {
-		// Step 1: Gather all lead emails
+		// Step 1: Query leads to get necessary fields
+		Map<Id, Lead> leadMap = new Map<Id, Lead>([SELECT Id, Email, isConverted FROM Lead WHERE Id IN :leads]);
+
+		// Step 2: Gather all lead emails and check if already converted or email is null
     Map<Id,String> leadToEmailMap = new Map<Id,String>();
-		for (Lead lead : leads) {
+		Set<Id> leadIdsToProcess = new Set<Id>();
+
+		for (Lead lead : leadMap.values()) {
+			if(lead.IsConverted) {
+				continue;
+			}
+
+			if(lead.Email == null) {
+				continue;
+			}
+
 			leadToEmailMap.put(lead.Id, lead.Email);
+			leadIdsToProcess.add(lead.Id);
 		}
 
-		// Step 2: Find matching contacts based on email
+		if(leadIdsToProcess.isEmpty()) {
+			return;
+		}
+
+		// Step 3: Find matching contacts based on email
 		Map<String, Contact> emailToContactMap = new Map<String, Contact>();
 		for (Contact c : [SELECT Id, Email, AccountId FROM Contact WHERE Email IN :leadToEmailMap.values()]) {
 			if (!emailToContactMap.containsKey(c.Email)) {
@@ -122,11 +140,11 @@ public with sharing class LeadTriggerHandler {
 			}
 		}
 
-		// Step 3: Auto-convert leads
+		// Step 4: Auto-convert leads
 		List<Database.LeadConvert> leadConverts = new List<Database.LeadConvert>();
 		LeadStatus convertStatus = [SELECT Id, MasterLabel FROM LeadStatus WHERE IsConverted = TRUE LIMIT 1];
 		for (Id leadId : leadToEmailMap.keySet()) {
-            String leadEmail = leadToEmailMap.get(leadId);
+      String leadEmail = leadToEmailMap.get(leadId);
 			if (emailToContactMap.containsKey(leadEmail)) {
 				Database.LeadConvert lc = new Database.LeadConvert();
 				lc.setLeadId(leadId);
